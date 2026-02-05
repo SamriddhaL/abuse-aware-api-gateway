@@ -3,11 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RequestLogger } from './request-logger.middleware';
 import { HelloModule } from './hello/hello.module';
+import { LimiterService } from './limiter/limiter.service';
+import { LimiterModule } from './limiter/limiter.module';
 
 @Module({
-  imports: [HelloModule],
+  imports: [HelloModule, LimiterModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LimiterService],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {
