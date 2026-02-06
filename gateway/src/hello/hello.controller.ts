@@ -2,7 +2,7 @@ import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import axios from 'axios';
 import { count } from 'console';
 import type { Request, Response } from 'express';
-import { ApiGuard } from 'src/auth/api-key.guard';
+import { ApiGuard } from 'src/api-key.guard';
 import { LimiterService } from 'src/limiter/limiter.service';
 
 @UseGuards(ApiGuard)
