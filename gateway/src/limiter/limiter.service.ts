@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { count } from 'console';
 const requestCount : Record<string, {count: number, lastReset: number}> = {}
 
 @Injectable()
@@ -11,11 +12,16 @@ export class LimiterService {
                         count : 1
                     }
                 }
-                else{
-                    requestCount[key].count += 1
-                }
-                if (requestCount[key].count > 5){
-                    return(false)
-                }
+        else{
+            requestCount[key].count += 1
+        }
+        if (requestCount[key].count > 5){
+            console.log(`[BLOCK] key =${key} count = ${count}` )
+            return(false)
+        }
+        else{
+            console.log(`[ALLOW] key =${key} count = ${count}` )
+            return(true)
+        }
     }
 }

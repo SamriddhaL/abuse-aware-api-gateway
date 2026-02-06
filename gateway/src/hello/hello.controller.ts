@@ -11,7 +11,7 @@ export class HelloController {
     @Get()
     async getHello(@Req() req: Request, @Res() res: Response) {
         
-        const key = req.ip ?? 'unknown'
+        const key = req.header['x-api-key'].toString() ?? req.ip ?? 'unknown'
         const isAllowed = this.limiterService.isAllowed(key)
         if (!isAllowed){
             return res.status(429).json({error:'Rate Limited'})
