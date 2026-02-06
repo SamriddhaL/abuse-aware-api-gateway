@@ -1,17 +1,19 @@
-import { Controller, Get, Req, Res } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import axios from 'axios';
 import { count } from 'console';
 import type { Request, Response } from 'express';
+import { ApiGuard } from 'src/auth/api-key.guard';
 import { LimiterService } from 'src/limiter/limiter.service';
 
-
+@UseGuards(ApiGuard)
 @Controller('hello')
 export class HelloController {
     constructor(private readonly limiterService: LimiterService){}
     @Get()
     async getHello(@Req() req: Request, @Res() res: Response) {
         
-        const key = req.header['x-api-key'].toString() ?? req.ip ?? 'unknown'
+        const rawKey = req.headers['x-api-key'] ?? req.ip ?? 'unknown'
+        const key = rawKey[0]
         const isAllowed = this.limiterService.isAllowed(key)
         if (!isAllowed){
             return res.status(429).json({error:'Rate Limited'})
