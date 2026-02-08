@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Auth } from './auth';
 import { JwtGuard } from './jwt/jwt.guard';
+import { Roles } from './jwt/roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +18,8 @@ export class AuthController {
         return token
     }
 
-    @UseGuards(JwtGuard)
+    @Roles('admin')
+    @UseGuards(JwtGuard, RolesGuard)
     @Get('test')
     test(){
         return 'valid' 
