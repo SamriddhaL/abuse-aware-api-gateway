@@ -1,5 +1,6 @@
-import { Body, Controller, Param, Post, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Auth } from './auth';
+import { JwtGuard } from './jwt/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -13,5 +14,11 @@ export class AuthController {
         }
         const token = this.Auth.login({username: user.username})
         return token
+    }
+
+    @UseGuards(JwtGuard)
+    @Get('test')
+    test(){
+        return 'valid' 
     }
 }
