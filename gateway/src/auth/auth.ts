@@ -15,7 +15,7 @@ export class Auth {
         if (!exactUser){
             return null
         }
-        if (exactUser.password === user.password){
+        if (exactUser.password === user.password){  
             return user
         } 
         return null
