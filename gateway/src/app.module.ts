@@ -6,12 +6,19 @@ import { HelloModule } from './hello/hello.module';
 import { LimiterService } from './limiter/limiter.service';
 import { LimiterModule } from './limiter/limiter.module';
 import { AuthModule } from './auth/auth.module';
-import {ConfigModule} from '@nestjs/config'
+import {ConfigModule, ConfigService} from '@nestjs/config'
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [HelloModule, LimiterModule, AuthModule,
     ConfigModule.forRoot({
       isGlobal: true
+    }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get('CONNECTION_STRING')
+      })
     })
   ],
   controllers: [AppController],

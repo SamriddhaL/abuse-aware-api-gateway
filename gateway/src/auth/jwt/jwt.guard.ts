@@ -26,7 +26,7 @@ export class JwtGuard implements CanActivate {
         request.user = payload
         return true
       }
-      catch(err){
+      catch(err){ 
         throw new UnauthorizedException('invalid or expired jwt token')
       }
   }
