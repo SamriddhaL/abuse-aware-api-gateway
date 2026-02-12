@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 const users = [
     { username: 'alice', password: 'pass123', roles: ['user'] },
@@ -10,26 +11,21 @@ const refreshStore: Record<string, string> = {};
 
 @Injectable()
 export class Auth {
-    constructor(private jwtService: JwtService) {}
+    constructor(private jwtService: JwtService) { }
 
     validateUser(user: { username: string; password: string }) {
         const exactUser = users.find(u => u.username === user.username);
-        if (!exactUser) {
-            return null;
-        }
-        if (exactUser.password === user.password) {
-            return exactUser;
-        }
+        if (!exactUser) return null;
+        if (exactUser.password === user.password) return exactUser;
         return null;
     }
 
-
-    login(user: { username: string }) {
-        const exactUser = users.find(u => u.username === user.username);
+    async login(user: { username: string }) {
+        const exactUser = users.find(u => u.username === user.username)!;
 
         const payload = {
             username: user.username,
-            roles: exactUser!.roles,
+            roles: exactUser.roles,
         };
 
         const accessToken = this.jwtService.sign(payload, {
@@ -40,7 +36,8 @@ export class Auth {
             expiresIn: '7d',
         });
 
-        refreshStore[user.username] = refreshToken;
+        // 🔐 HASH before storing
+        refreshStore[user.username] = await bcrypt.hash(refreshToken, 10);
 
         return {
             accessToken,
@@ -48,7 +45,7 @@ export class Auth {
         };
     }
 
-    refresh(refreshToken: string) {
+    async refresh(refreshToken: string) {
         let payload: any;
 
         try {
@@ -57,19 +54,37 @@ export class Auth {
             return null;
         }
 
-    const storedToken = refreshStore[payload.username];
-    if (!storedToken || storedToken !== refreshToken) {
-        return null;
-    }
+        const storedHash = refreshStore[payload.username];
+        if (!storedHash) return null;
 
-    const newAccessToken = this.jwtService.sign(
-    {
-        username: payload.username,
-        roles: payload.roles,
-    },
-    { expiresIn: '15m' },
-    );
+        const isValid = await bcrypt.compare(refreshToken, storedHash);
+        if (!isValid) return null;
 
-    return { accessToken: newAccessToken };
+        const newAccessToken = this.jwtService.sign(
+            {
+                username: payload.username,
+                roles: payload.roles,
+            },
+            { expiresIn: '15m' },
+        );
+
+        const newRefreshToken = this.jwtService.sign(
+            {
+                username: payload.username,
+                roles: payload.roles,
+            },
+            { expiresIn: '7d' },
+        );
+
+        // overwrite old hash
+        refreshStore[payload.username] = await bcrypt.hash(
+            newRefreshToken,
+            10,
+        );
+
+        return {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+        };
     }
 }
